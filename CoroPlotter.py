@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from mytools.myutils import updateFile
 
 def plotlines(data, title, pdays = 21):
     loc = MultipleLocator(1)
@@ -33,14 +34,15 @@ def plottrend(data, dataTrend, title, pdays = 28):
 
 ## Getting and processing Data
 
-# # Population Data
+# Population Data
 file = '~/Python/CoroPlotter/population_by_country_2020.csv'
 dfPopulation = pd.read_csv(file)
 dfPopulation.rename(columns={'Country (or dependency)' : 'country', 'Population (2020)' : 'population'}, inplace = True)
 population = dfPopulation[['country','population']]
 population.set_index('country', inplace = True)
 # Adding World Total
-population.loc['World'] = population.sum()
+#population.loc['World'] = population.sum()
+population.append(pd.DataFrame(data = [population.sum()], index=['World']))
 
 # Renaming Index values to John Hopkins COVID Data
 population = population.rename(index={'United States':'US', 'South Korea':'Korea, South', 'Myanmar': 'Burma',\
@@ -52,7 +54,10 @@ urlDeaths = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/cs
 urlRecovered = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv'
 
 # ########## Confirmed #################
-dfConfirmed = pd.read_csv(urlConfirmed)
+updateFile(urlConfirmed, 'confirmed.csv', mtime = 0.25)
+dfConfirmed = pd.read_csv('confirmed.csv') 
+# passing url directly to pd.read_csv is also possible. But trying to keep an up
+# dated local file and avoid unecessary downloads
 dfConfirmed.drop(columns=['Province/State','Lat', 'Long'], inplace = True)
 dfConfirmed.rename(columns={'Country/Region' : 'region'}, inplace = True)
 dfC = dfConfirmed.groupby(['region']).sum()
@@ -63,7 +68,8 @@ dfC['WorldExceptChina'] = dfC['World'] - dfC['China']
 
 
 # ########## Deaths #################
-dfDeaths = pd.read_csv(urlDeaths)
+updateFile(urlDeaths, 'deaths.csv', mtime = 0.25)
+dfDeaths = pd.read_csv('deaths.csv')
 dfDeaths.drop(columns=['Province/State','Lat', 'Long'], inplace = True)
 dfDeaths.rename(columns={'Country/Region' : 'region'}, inplace = True)
 dfD = dfDeaths.groupby(['region']).sum()
@@ -127,9 +133,11 @@ sorted_dfD = dfDsubset.sort_values(dfDsubset.last_valid_index(), axis=1, ascendi
 topZonesDeaths = sorted_dfD.columns[:topN]
 
 # Mortality (deaths/Population)
-
-pop = population.loc[dfD.columns].dropna() # Selecting only countries in both data frames
-dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000 # Mortality each 100K
+# Selecting only countries in both data frames and dropping nAs
+commonLabelsIndex = population.index.intersection(dfC.columns.values) 
+pop = population.loc[commonLabelsIndex].dropna()
+# # Mortality per Million
+dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000
 
 sorted_dfMortality = dfMortality.sort_values(dfMortality.last_valid_index(), axis=1, ascending = False)
 topMortality = sorted_dfMortality.columns[:topN]
@@ -146,7 +154,7 @@ zonesRatios = ['World', 'China', 'Italy', 'US','Germany',\
 
 latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru']
 
-pdays = 21
+pdays = 28
 
 ## ####### Cases #######
 
@@ -162,7 +170,7 @@ plotbars(dailyNew[topZonesCases], 'COVID-19 Daily New Cases')
 ## ####### Deaths #######
 
 # Death - Top Countries
-plotlines(dfD[topZonesDeaths], 'COVID-19 - Countries with most deaths', 28)
+plotlines(dfD[topZonesDeaths], 'COVID-19 - Countries with most deaths', pdays)
 
 # Daily New Death
 plotbars(dailyNewDeath[latam], 'COVID-19 Daily New Deaths')
@@ -170,7 +178,7 @@ plotbars(dailyNewDeath[latam], 'COVID-19 Daily New Deaths')
 ## ####### Ratios #######
 
 # Deaths/Cases Ratio
-plotlines(dRate[topZonesCases], 'COVID-19 - Death Ratio %', 28)
+plotlines(dRate[topZonesCases], 'COVID-19 - Death Ratio %', pdays)
 
 # Growth Factor
 plotlines(growthFactor[topZonesCases], 'Growth Factor - Daily', 14)
@@ -179,10 +187,10 @@ plotlines(growthFactor[topZonesCases], 'Growth Factor - Daily', 14)
 ## ####### Mortality (deaths/population) #######
 
 # Mortality - Top Countries
-plotlines(dfMortality[topMortality], 'COVID-19 - Mortality (dead per Million) Top Countries', 28)
+plotlines(dfMortality[topMortality], 'COVID-19 - Mortality (deaths per Million Population) Top Countries', pdays)
 
 # Mortality #topZonesDeaths
-plotlines(dfMortality[latam], 'COVID-19 - Mortality (dead per Million)', 28)
+plotlines(dfMortality[latam], 'COVID-19 - Mortality (deaths per Million Population) Latam', pdays)
 
 ## ########  Trend #############
 
