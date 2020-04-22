@@ -62,7 +62,7 @@ dfConfirmed.drop(columns=['Province/State','Lat', 'Long'], inplace = True)
 dfConfirmed.rename(columns={'Country/Region' : 'region'}, inplace = True)
 dfC = dfConfirmed.groupby(['region']).sum()
 dfC = dfC.T
-dfC.index = pd.to_datetime(dfC.index, format="%m/%d/%y")
+dfC.index = pd.to_datetime(dfC.index, format="%m/%d/%Y")
 dfC['World'] = dfC.sum(axis=1)
 dfC['WorldExceptChina'] = dfC['World'] - dfC['China'] 
 
@@ -74,7 +74,7 @@ dfDeaths.drop(columns=['Province/State','Lat', 'Long'], inplace = True)
 dfDeaths.rename(columns={'Country/Region' : 'region'}, inplace = True)
 dfD = dfDeaths.groupby(['region']).sum()
 dfD = dfD.T
-dfD.index = pd.to_datetime(dfD.index, format="%m/%d/%y")
+dfD.index = pd.to_datetime(dfD.index, format="%m/%d/%Y")
 dfD['World'] = dfD.sum(axis=1)
 dfD['WorldExceptChina'] = dfD['World'] - dfD['China'] 
 
@@ -188,6 +188,9 @@ plotlines(growthFactor[topZonesCases], 'Growth Factor - Daily', 14)
 
 # Mortality - Top Countries
 plotlines(dfMortality[topMortality], 'COVID-19 - Mortality (deaths per Million Population) Top Countries', pdays)
+
+# Mortality
+plotlines(dfMortality[topZonesCases], 'COVID-19 - Mortality (deaths per Million Population)', pdays)
 
 # Mortality #topZonesDeaths
 plotlines(dfMortality[latam], 'COVID-19 - Mortality (deaths per Million Population) Latam', pdays)
