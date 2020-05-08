@@ -19,9 +19,8 @@ https://github.com/slovanos/CoroPlotter
 ## Usage:
 
 ```shell
-$ python3 tgbot.py
+$ python3 CoroPlotter.py
 ```
-
 Choose the options
 
 ### Bye
