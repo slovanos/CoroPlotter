@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from mytools.myutils import updateFile
+from mytools.myutils import updateFile, inputInteger
 
 def processDf(df):
     """Preprocess the raw dataframe (that results from the .csv import)"""
@@ -30,7 +30,7 @@ def plot(data, title, pdays=28, kind='line'):
     ax.grid(True, which='major')
     plt.annotate(dataSource, xy=(0.55,-0.07), xytext=(0.55,-0.07), xycoords='axes fraction',
                  textcoords='offset points', va='top', fontsize=8)
-    plt.show(block=False)
+    plt.show()
 
     
 def plottrend(data, dataTrend, title, pdays=28):
@@ -44,7 +44,7 @@ def plottrend(data, dataTrend, title, pdays=28):
     ax.grid(True, which='major')
     plt.annotate(dataSource, xy=(0.55,-0.07), xytext=(0.55,-0.07), xycoords='axes fraction',
                  textcoords='offset points', va='top', fontsize=8)
-    plt.show(block=False)
+    plt.show()
 
 
 ## Getting and processing Data
@@ -171,57 +171,79 @@ trendZones = topZonesCases
 
 growthFactorMean = growthFactor.iloc[-pDaysTrend:,:].mean(axis=0)
 
-#dfTrend = dfC[zones].iloc[-1,:]
+#dfCTrend = dfC[zones].iloc[-1,:]
 trendIndex = pd.date_range(start=dfC.index[-1], periods=fDaysTrend, freq='D')
-dfTrend = pd.DataFrame(index=trendIndex, columns=trendZones)
-dfTrend.iloc[0] = dfC[trendZones].iloc[-1,:]
+dfCTrend = pd.DataFrame(index=trendIndex, columns=trendZones)
+dfCTrend.iloc[0] = dfC[trendZones].iloc[-1,:]
 
 for i in range(1,fDaysTrend):
-    dfTrend.iloc[i] = dfTrend.iloc[i-1] * growthFactorMean
+    dfCTrend.iloc[i] = dfCTrend.iloc[i-1] * growthFactorMean
 
 # ################## Plotting Data ########################
-pdays = 48
+pdays = 56
 
-## ####### Cases #######
+# some plot Options
 
-# Cases in Most affected Countries
-plot(dfC[topZonesCases], 'COVID-19 Cases in Most Affected Countries', pdays)
+# Data used. Description
 
-# Cases in a given zone
-plot(dfC[ZOI], 'COVID-19 Cases', pdays)
+## picking
 
-# Daily New Cases
-#plot(dailyNewCases[topZonesCases], 'COVID-19 Daily New Cases', kind='bar')
+sampleOptions = [('dfC[topZonesCases]','COVID-19 - Cases in Most Affected Countries'),
+           ('dfC[ZOI]','COVID-19 - Cases Arbitrary zone selection'),
+           ('dfC[latam]','COVID-19 - Cases Latam'),
+           ('dfD[topZonesDeaths]','COVID-19 - Countries with most deaths'),
+           ('dRatio[topZonesCases]', 'COVID-19 - Death/Cases Ratio for countries with most cases [%]'),
+           ('dRatio[latam]', 'COVID-19 - Death/Cases Ratio for Katam countries [%]'),
+           ('growthFactor[topZonesCases]', 'COVID-19 - Daily Growth Factor for countries with most cases'),
+           ('growthFactor[latam]', 'COVID-19 - Daily Growth Factor for Latam countries'),
+           ('dfMortality[topMortality]', 'COVID-19 - Mortality (per Million Population) Top Countries'),
+           ('dfMortality[topZonesCases]', 'COVID-19 - Mortality (per Million Population) '\
+            'for countries with most cases'),
+           ('dfMortality[latam]', 'COVID-19 - Mortality (per Million Population) for Latam'),
+           ]
 
-## ####### Deaths #######
+# Alternative: list of zones and list of dataframes to be combined
 
-# Countries with most deaths
-plot(dfD[topZonesDeaths], 'COVID-19 - Countries with most deaths', pdays)
+zones = [(latam, 'Some Latam Countries'),
+         (topZonesCases, 'Countries with most cases'),
+         (topZonesDeaths, 'Countries with most deaths'),
+         (topMortality, 'Top deaths/population Countries t'),
+         (ZOI, 'Arbitrary zone selection'),
+         ]
 
-# Daily New Death on a given zone
-#plot(dailyNewDeath[latam], 'COVID-19 Daily New Deaths', kind='bar')
+dfs = [(dfC,'COVID-19 Cases'),
+       (dfD,'COVID-19 Deaths'),
+       (dfCTrend,'COVID-19 Cases'), # Special case actually
+       ] 
 
-## ####### Ratios #######
+# continue. See special cases!!
 
-# Deaths/Cases Ratio
-plot(dRatio[topZonesCases], 'COVID-19 - Death Ratio %', pdays)
+###########################
 
-# Growth Factor on given zone
-plot(growthFactor[latam], 'Growth Factor - Daily', pdays)
+def listOptions(options, msg):
+    print(msg)
+    
+    for idx, option in enumerate(options):
+        print(f'{idx}: {option[1]}')
 
+       
+if __name__ == '__main__':
 
-## ####### Mortality (deaths/population) #######
+    print(f'\nEnter the number of past days to draw the graphs.'\
+          f'[Enter for default: {pdays}]')
 
-# Mortality - Top Countries
-plot(dfMortality[topMortality], 'COVID-19 - Mortality (deaths per Million Population) Top Countries', pdays)
+    daysMsg = f'\nEnter the number of past days to draw the graphs. [Enter for default: {pdays}]:'
 
-# Mortality
-plot(dfMortality[topZonesCases], 'COVID-19 - Mortality (deaths per Million Population)', pdays)
+    pdays = inputInteger(pdays, daysMsg)
 
-# Mortality #topZonesDeaths
-plot(dfMortality[latam], 'COVID-19 - Mortality (deaths per Million Population) Latam', pdays)
+    message = f'Choose one of the following Graphs:\n'
 
-## Trend
+    listOptions(sampleOptions, message)
 
-# Plot Trend
-plottrend(dfC[trendZones], dfTrend, 'COVID-19 Cases and Trend', pdays)
+    while True:
+
+        n = inputInteger()
+
+        data = eval(sampleOptions[n][0])
+        title = sampleOptions[n][1]
+        plot(data, title, pdays)
