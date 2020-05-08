@@ -2,9 +2,9 @@
 
 Plot several updated graphs of COVID-19 
 
-![plot1](https://raw.githubusercontent.com/slovanos/images/master/coroplotter01.png)
+<img src="https://raw.githubusercontent.com/slovanos/images/master/coroplotter01.png" width=820>
 
-![plot2](https://raw.githubusercontent.com/slovanos/images/master/coroplotter02.png)
+<img src="https://raw.githubusercontent.com/slovanos/images/master/coroplotter02.png" width=820>
 
 https://github.com/slovanos/CoroPlotter
 
