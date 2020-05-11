@@ -193,7 +193,7 @@ sampleOptions = [('dfC[topZonesCases]','COVID-19 - Cases in Most Affected Countr
            ('dfC[latam]','COVID-19 - Cases Latam'),
            ('dfD[topZonesDeaths]','COVID-19 - Countries with most deaths'),
            ('dRatio[topZonesCases]', 'COVID-19 - Death/Cases Ratio for countries with most cases [%]'),
-           ('dRatio[latam]', 'COVID-19 - Death/Cases Ratio for Katam countries [%]'),
+           ('dRatio[latam]', 'COVID-19 - Death/Cases Ratio for Latam countries [%]'),
            ('growthFactor[topZonesCases]', 'COVID-19 - Daily Growth Factor for countries with most cases'),
            ('growthFactor[latam]', 'COVID-19 - Daily Growth Factor for Latam countries'),
            ('dfMortality[topMortality]', 'COVID-19 - Mortality (per Million Population) Top Countries'),
