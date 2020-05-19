@@ -49,22 +49,25 @@ def plottrend(data, dataTrend, title, pdays=28):
 
 ## Getting and processing Data
 
-# Population Data
+# ++++++++++++++++ Population Data +++++++++++++
+
 file = './data/population_by_country_2020.csv'
 dfPopulation = pd.read_csv(file)
 dfPopulation.rename(columns={'Country (or dependency)' : 'country',
                              'Population (2020)' : 'population'}, inplace=True)
 population = dfPopulation[['country','population']]
 population.set_index('country', inplace = True)
+
 # Adding World Total
-population.append(pd.DataFrame(data = [population.sum()], index=['World']))
+population = population.append(pd.DataFrame(data = [population.sum()], index=['World']))
 
 # Renaming Index values to John Hopkins COVID Data
 population = population.rename(
         index={'United States':'US', 'South Korea':'Korea, South', 'Myanmar': 'Burma',
         'Czech Republic (Czechia)':'Czechia', 'Taiwan':'Taiwan*'})
 
-# COVID-19 Data
+# +++++++++++++ COVID-19 Data +++++++++++++++++++
+
 rootUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master'\
           '/csse_covid_19_data/csse_covid_19_time_series/'
 
@@ -90,7 +93,7 @@ dfD = processDf(dfDeaths)
 
 # Defining Arbitrary Zones of interest and parameters
 
-ZOI = ['World', 'WorldExceptChina', 'China', 'Italy', 'US','Germany', 'Switzerland',
+ZOI = ['World', 'China', 'Italy', 'US','Germany', 'Switzerland',
          'United Kingdom', 'Spain', 'Iran', 'Argentina','Korea, South', 'Canada',
          'Austria', 'Norway','Russia']
 
@@ -98,6 +101,8 @@ ZOIRatios = ['World', 'China', 'Italy', 'US','Germany', 'Spain', 'Iran',
                'Argentina','Korea, South', 'Canada', 'Austria', 'Norway']
 
 latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru']
+
+world = ['World']
 
 
 ## Subgroups and calculations
@@ -180,44 +185,39 @@ for i in range(1,fDaysTrend):
     dfCTrend.iloc[i] = dfCTrend.iloc[i-1] * growthFactorMean
 
 # ################## Plotting Data ########################
-pdays = 56
 
 # some plot Options
+pdays = 70
 
 # Data used. Description
 
 ## picking
 
-titlePrefix = 'COVID_19 - '
+titlePrefix = 'COVID-19 - '
 
-sampleOptions = [('dfC[topZonesCases]','Cases - Most Affected Countries'),
-           ('dfC[ZOI]','Cases - Arbitrary zone selection'),
-           ('dfC[latam]','Cases - Latam'),
-           ('dfD[topZonesDeaths]','Deaths - Top Countries'),
-           ('dRatio[topZonesCases]', 'Death/Cases Ratio[%] - Countries with most cases'),
-           ('dRatio[latam]', 'Death/Cases Ratio[%] - Latam Countries'),
-           ('growthFactor[topZonesCases]', 'Daily Growth Factor - Countries with most cases'),
-           ('growthFactor[latam]', 'Daily Growth Factor - Latam countries'),
-           ('dfMortality[topMortality]', 'Mortality (per Million Population) - Top Countries'),
-           ('dfMortality[topZonesCases]', 'Mortality (per Million Population) -'\
-            'Countries with most cases'),
-           ('dfMortality[latam]', 'Mortality (per Million Population) - Latam Countries'),
-           ]
+# List of zones and list of dataframes to be combined
 
-# Alternative: list of zones and list of dataframes to be combined
+# Data Choices
 
-zones = [(latam, 'Some Latam Countries'),
-         (topZonesCases, 'Countries with most cases'),
+dfs = [(dfC,'Cases'),
+       (growthFactor, 'Cases growth Factor (Daily)'),
+       (dailyNewCases, 'Daily New Cases'),
+       (dfD,'Deaths'),
+       (dailyNewDeath, 'Daily New Deaths'),
+       (dfMortality, 'Mortality (Deaths per million)'),
+       (dRatio, 'Deaths/Cases ratio'),
+       ]
+
+# Zone Choices
+zones = [(topZonesCases, 'Countries with most cases'),
          (topZonesDeaths, 'Countries with most deaths'),
-         (topMortality, 'Countries with largest deaths/population Ratio'),
-         (ZOI, 'Arbitrary zone selection'),
+         (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
+         (world, 'World'),
+         (ZOI, 'Arbitrary zone selection', '\n(' + ', '.join(ZOI) +')'),
+         (latam, 'Some Latam Countries', '\n(' + ', '.join(latam) +')'),
          ]
 
-dfs = [(dfC,'COVID-19 Cases'),
-       (dfD,'COVID-19 Deaths'),
-       (dfCTrend,'COVID-19 Cases'), # Special case actually
-       ] 
-
+# (dfCTrend,'COVID-19 Cases'), # Special case actually
 # continue. See special cases!!
 
 ###########################
@@ -226,23 +226,34 @@ def listOptions(options, msg):
     print(msg)
     
     for idx, option in enumerate(options):
-        print(f'{idx}: {option[1]}')
+        optionDescription = option[1]
+        optionList = option[2] if len(option) > 2 else ''
+        print(f'{idx}: {optionDescription}{optionList}')
 
        
 if __name__ == '__main__':
 
     daysMsg = f'Enter the number of past days to draw the graphs. [Enter for default: {pdays}]:'
-
     pdays = inputInteger(pdays, daysMsg)
 
-    message = f'\nChoose one of the following COVID-19 Graphs:\n'
+    dataMsg = f'\nChoose one of the following COVID-19 related Data:\n'
+    listOptions(dfs, dataMsg)
+    dataChoice = inputInteger()
 
-    listOptions(sampleOptions, message)
+    zoneMsg = f'\nChoose the zone of interest to plot the data:\n'
+    listOptions(zones, zoneMsg)
+    zoneChoice = inputInteger()
 
     while True:
 
-        n = inputInteger()
+        chosenData, dataDescription = dfs[dataChoice]
+        chosenZone, zoneDescription = zones[zoneChoice][:2]
 
-        data = eval(sampleOptions[n][0])
-        title = titlePrefix + sampleOptions[n][1]
-        plot(data, title, pdays)
+        title = titlePrefix + dataDescription + ' - ' + zoneDescription
+        try:
+            plot(chosenData[chosenZone], title, pdays)
+        except Exception as e:
+            print(e)
+        
+        dataChoice = inputInteger(message='Choose the data [or q to quit]:')
+        zoneChoice = inputInteger(message='Choose the zone of interest [or q to quit]:')
