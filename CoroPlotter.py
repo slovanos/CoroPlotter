@@ -188,18 +188,20 @@ pdays = 56
 
 ## picking
 
-sampleOptions = [('dfC[topZonesCases]','COVID-19 - Cases in Most Affected Countries'),
-           ('dfC[ZOI]','COVID-19 - Cases Arbitrary zone selection'),
-           ('dfC[latam]','COVID-19 - Cases Latam'),
-           ('dfD[topZonesDeaths]','COVID-19 - Countries with most deaths'),
-           ('dRatio[topZonesCases]', 'COVID-19 - Death/Cases Ratio for countries with most cases [%]'),
-           ('dRatio[latam]', 'COVID-19 - Death/Cases Ratio for Latam countries [%]'),
-           ('growthFactor[topZonesCases]', 'COVID-19 - Daily Growth Factor for countries with most cases'),
-           ('growthFactor[latam]', 'COVID-19 - Daily Growth Factor for Latam countries'),
-           ('dfMortality[topMortality]', 'COVID-19 - Mortality (per Million Population) Top Countries'),
-           ('dfMortality[topZonesCases]', 'COVID-19 - Mortality (per Million Population) '\
-            'for countries with most cases'),
-           ('dfMortality[latam]', 'COVID-19 - Mortality (per Million Population) for Latam'),
+titlePrefix = 'COVID_19 - '
+
+sampleOptions = [('dfC[topZonesCases]','Cases - Most Affected Countries'),
+           ('dfC[ZOI]','Cases - Arbitrary zone selection'),
+           ('dfC[latam]','Cases - Latam'),
+           ('dfD[topZonesDeaths]','Deaths - Top Countries'),
+           ('dRatio[topZonesCases]', 'Death/Cases Ratio[%] - Countries with most cases'),
+           ('dRatio[latam]', 'Death/Cases Ratio[%] - Latam Countries'),
+           ('growthFactor[topZonesCases]', 'Daily Growth Factor - Countries with most cases'),
+           ('growthFactor[latam]', 'Daily Growth Factor - Latam countries'),
+           ('dfMortality[topMortality]', 'Mortality (per Million Population) - Top Countries'),
+           ('dfMortality[topZonesCases]', 'Mortality (per Million Population) -'\
+            'Countries with most cases'),
+           ('dfMortality[latam]', 'Mortality (per Million Population) - Latam Countries'),
            ]
 
 # Alternative: list of zones and list of dataframes to be combined
@@ -207,7 +209,7 @@ sampleOptions = [('dfC[topZonesCases]','COVID-19 - Cases in Most Affected Countr
 zones = [(latam, 'Some Latam Countries'),
          (topZonesCases, 'Countries with most cases'),
          (topZonesDeaths, 'Countries with most deaths'),
-         (topMortality, 'Top deaths/population Countries t'),
+         (topMortality, 'Countries with largest deaths/population Ratio'),
          (ZOI, 'Arbitrary zone selection'),
          ]
 
@@ -229,14 +231,11 @@ def listOptions(options, msg):
        
 if __name__ == '__main__':
 
-    print(f'\nEnter the number of past days to draw the graphs.'\
-          f'[Enter for default: {pdays}]')
-
-    daysMsg = f'\nEnter the number of past days to draw the graphs. [Enter for default: {pdays}]:'
+    daysMsg = f'Enter the number of past days to draw the graphs. [Enter for default: {pdays}]:'
 
     pdays = inputInteger(pdays, daysMsg)
 
-    message = f'Choose one of the following Graphs:\n'
+    message = f'\nChoose one of the following COVID-19 Graphs:\n'
 
     listOptions(sampleOptions, message)
 
@@ -245,5 +244,5 @@ if __name__ == '__main__':
         n = inputInteger()
 
         data = eval(sampleOptions[n][0])
-        title = sampleOptions[n][1]
+        title = titlePrefix + sampleOptions[n][1]
         plot(data, title, pdays)
