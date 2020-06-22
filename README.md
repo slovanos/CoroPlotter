@@ -21,6 +21,8 @@ https://github.com/slovanos/CoroPlotter
 ```shell
 $ python3 CoroPlotter.py
 ```
+<img src="https://raw.githubusercontent.com/slovanos/images/master/coroplotter00.png" width=600>
+
 Choose the options
 
 **Note:** this is a practical script to plot updated data from the Johns Hopkins University related to COVID-19 pandemic. It isn't a module to import or a library with specific and optimized functions to be called upon need. Most data is preprocessed in a single for Loop for example, regardless these being plotted or not.
