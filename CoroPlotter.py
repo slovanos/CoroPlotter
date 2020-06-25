@@ -18,6 +18,16 @@ def processDf(df):
 
 # Plot Functions
 
+# Distinct color list
+
+colorList = [(0, 0, 0), (230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200),\
+             (245, 130, 48), (145, 30, 180), (70, 240, 240), (240, 50, 230),\
+             (210, 245, 60), (0, 128, 128), (230, 190, 255), (170, 110, 40),\
+             (255, 250, 200), (128, 0, 0), (170, 255, 195), (128, 128, 0),\
+             (255, 215, 180), (0, 0, 128), (128, 128, 128), (255, 255, 255)]
+
+colorsArrayNormalized = np.array(colorList)/255 
+
 dataSource = 'Data Source: Johns Hopkins University\nGraph by @slovanos'
 
 def plot(data, title, pdays=28, kind='line'):
@@ -25,7 +35,10 @@ def plot(data, title, pdays=28, kind='line'):
     kind (str): 'line' or 'bar'
     """
     loc = MultipleLocator(1)
-    ax = data.iloc[-pdays:].plot(kind=kind, style='.-', grid=True, title=title)
+    if len(data.columns) <= 10:
+    	ax = data.iloc[-pdays:].plot(kind=kind, style='.-', grid=True, title=title)
+    else:
+    	ax = data.iloc[-pdays:].plot(kind=kind, style='.-', grid=True, title=title, color=colorsArrayNormalized)
     ax.xaxis.set_major_locator(loc)
     ax.grid(True, which='major')
     plt.annotate(dataSource, xy=(0.55,-0.07), xytext=(0.55,-0.07), xycoords='axes fraction',
@@ -99,6 +112,9 @@ ZOI = ['World', 'China', 'Italy', 'US','Germany', 'Switzerland',
 
 ZOIRatios = ['World', 'China', 'Italy', 'US','Germany', 'Spain', 'Iran',
                'Argentina','Korea, South', 'Canada', 'Austria', 'Norway']
+
+europe = ['Italy','Spain','France','Germany','Switzerland','Austria',
+         'United Kingdom', 'Norway','Sweden', 'Finland','Belgium', 'Ireland', 'Portugal']
 
 latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru']
 
@@ -214,6 +230,7 @@ zones = [(topZonesCases, 'Countries with most cases'),
          (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
          (world, 'World'),
          (ZOI, 'Arbitrary zone selection', '\n(' + ', '.join(ZOI) +')'),
+         (europe, 'Europe Countries', '\n(' + ', '.join(europe) +')'),
          (latam, 'Some Latam Countries', '\n(' + ', '.join(latam) +')'),
          ]
 
