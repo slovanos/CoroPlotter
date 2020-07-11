@@ -74,11 +74,6 @@ population.set_index('country', inplace = True)
 # Adding World Total
 population = population.append(pd.DataFrame(data = [population.sum()], index=['World']))
 
-# Renaming Index values to John Hopkins COVID Data
-population = population.rename(
-        index={'United States':'US', 'South Korea':'Korea, South', 'Myanmar': 'Burma',
-        'Czech Republic (Czechia)':'Czechia', 'Taiwan':'Taiwan*'})
-
 # +++++++++++++ COVID-19 Data +++++++++++++++++++
 
 rootUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master'\
@@ -104,19 +99,28 @@ dfD = processDf(dfDeaths)
 # ########## Recovered #################
 # Data currently Not available
 
-# Defining Arbitrary Zones of interest and parameters
+# ######## Renaming Index values for consistency ###############
+population = population.rename(
+        index={'United States':'Usa', 'South Korea':'Korea, South', 'Myanmar': 'Burma',
+        'Czech Republic (Czechia)':'Czechia'})
 
-ZOI = ['World', 'China', 'Italy', 'US','Germany', 'Switzerland',
+dfC = dfC.rename(columns={'US':'Usa', 'Taiwan*':'Taiwan'})
+
+dfD = dfD.rename(columns={'US':'Usa', 'Taiwan*':'Taiwan'})
+
+# ##### Defining Arbitrary Zones of interest and parameters #######
+
+ZOI = ['World', 'China', 'Italy', 'Usa','Germany', 'Switzerland',
          'United Kingdom', 'Spain', 'Iran', 'Argentina','Korea, South', 'Canada',
          'Austria', 'Norway','Russia']
 
-ZOIRatios = ['World', 'China', 'Italy', 'US','Germany', 'Spain', 'Iran',
+ZOIRatios = ['World', 'China', 'Italy', 'Usa','Germany', 'Spain', 'Iran',
                'Argentina','Korea, South', 'Canada', 'Austria', 'Norway']
 
 europe = ['Italy','Spain','France','Germany','Switzerland','Austria',
          'United Kingdom', 'Norway','Sweden', 'Finland','Belgium', 'Ireland', 'Portugal']
 
-latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru']
+latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru', 'Bolivia']
 
 world = ['World']
 
@@ -225,7 +229,7 @@ dfs = [(dfC,'Cases'),
        ]
 
 # Zone Choices
-zones = [(topZonesCases, 'Countries with most cases'),
+zoneChoices = [(topZonesCases, 'Countries with most cases'),
          (topZonesDeaths, 'Countries with most deaths'),
          (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
          (world, 'World'),
@@ -247,24 +251,70 @@ def listOptions(options, msg):
         optionList = option[2] if len(option) > 2 else ''
         print(f'{idx}: {optionDescription}{optionList}')
 
+def inputIntegerOrList(choicesList, message='Enter an option (integer), name or list of names [q to quit]:'):
+
+    while True:
+
+        option = input(f'\n{message}')
+
+        if option == 'q':
+            sys.exit(0)
+
+        elif option == '':
+            print(f'No pick, using default value 0')
+            return 0
+
+        elif option.isdigit():
+
+            try:
+                n = int(option)
+                return n
+
+            except ValueError:
+                    print('Not a valid input')
+        else:
+            
+            option = option.title().replace(' ','')
+            options = option.split(',')
+
+            intersection = choicesList.intersection(options)
+
+            if intersection:
+
+                if len(intersection) < len(options):
+                    print('One of the entered countries is not on the list')
+
+                return list(intersection)
+
+            else:
+                
+                print('Input no in the list of countries')
+
        
 if __name__ == '__main__':
+
+    #zones = [zone.lower() for zone in zones.tolist()] #  lowercased
+    zones = set(zones.tolist()) # pandas index to list and list to set
 
     daysMsg = f'Enter the number of past days to draw the graphs. [Enter for default: {pdays}]:'
     pdays = inputInteger(pdays, daysMsg)
 
     dataMsg = f'\nChoose one of the following COVID-19 related Data:\n'
     listOptions(dfs, dataMsg)
-    dataChoice = inputInteger()
+    dataChoice = inputInteger(default=5)
 
-    zoneMsg = f'\nChoose the zone of interest to plot the data:\n'
-    listOptions(zones, zoneMsg)
-    zoneChoice = inputInteger()
+    zoneMsg = f'\nChoose the zone of interest, or type the name of the country or list of countries separated by commas:\n'
+    listOptions(zoneChoices, zoneMsg)
+    zoneChoice = inputIntegerOrList(zones)
 
     while True:
 
         chosenData, dataDescription = dfs[dataChoice]
-        chosenZone, zoneDescription = zones[zoneChoice][:2]
+        if isinstance(zoneChoice, int):
+            chosenZone, zoneDescription = zoneChoices[zoneChoice][:2]
+        else:
+            chosenZone = zoneChoice
+            zoneDescription = 'User zone selection'
 
         title = titlePrefix + dataDescription + ' - ' + zoneDescription
         try:
@@ -272,5 +322,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         
-        dataChoice = inputInteger(message='Choose the data [or q to quit]:')
-        zoneChoice = inputInteger(message='Choose the zone of interest [or q to quit]:')
+        dataChoice = inputInteger(default=5, message='Choose the data [or q to quit]:')
+        zoneChoice = inputIntegerOrList(zones,message='Choose the zone of interest [or q to quit]:')
