@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from mytools.myutils import updateFile, inputInteger
@@ -274,21 +275,22 @@ def inputIntegerOrList(choicesList, message='Enter an option (integer), name or 
                     print('Not a valid input')
         else:
             
-            option = option.title().replace(' ','')
+            option = option.title()
             options = option.split(',')
+            options = [item.strip() for item in options]
 
-            intersection = choicesList.intersection(options)
+            intersection = choicesList.intersection(set(options))
 
             if intersection:
 
                 if len(intersection) < len(options):
-                    print('One of the entered countries is not on the list')
+                    print('At least one of the entered countries is not on the list')
 
                 return list(intersection)
 
             else:
                 
-                print('Input no in the list of countries')
+                print('Input not in the list of countries')
 
        
 if __name__ == '__main__':
