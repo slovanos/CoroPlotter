@@ -157,6 +157,9 @@ for zone in zones:
     dailyNewDeath[zone] = dfD[zone]-tempD.values
 
 
+NewCasesMovingAverage = dailyNewCases.rolling(window=7).mean()
+NewDeathMovingAverage = dailyNewDeath.rolling(window=7).mean()
+
 # #### TOP N Countries ####
 
 topN = 10
@@ -208,7 +211,7 @@ for i in range(1,fDaysTrend):
 # ################## Plotting Data ########################
 
 # some plot Options
-pdays = 70
+pdays = 120
 
 # Data used. Description
 
@@ -223,8 +226,10 @@ titlePrefix = 'COVID-19 - '
 dfs = [(dfC,'Cases'),
        (growthFactor, 'Cases growth Factor (Daily)'),
        (dailyNewCases, 'Daily New Cases'),
+       (NewCasesMovingAverage, 'New Cases (7 days moving average)'),
        (dfD,'Deaths'),
        (dailyNewDeath, 'Daily New Deaths'),
+       (NewDeathMovingAverage, 'New Deaths (7 days moving average)'),
        (dfMortality, 'Mortality (Deaths per million)'),
        (dRatio, 'Deaths/Cases ratio'),
        ]
@@ -303,7 +308,7 @@ if __name__ == '__main__':
 
     dataMsg = f'\nChoose one of the following COVID-19 related Data:\n'
     listOptions(dfs, dataMsg)
-    dataChoice = inputInteger(default=5)
+    dataChoice = inputInteger(default=7)
 
     zoneMsg = f'\nChoose the zone of interest, or type the name of the country or list of countries separated by commas:\n'
     listOptions(zoneChoices, zoneMsg)
@@ -318,11 +323,11 @@ if __name__ == '__main__':
             chosenZone = zoneChoice
             zoneDescription = 'User zone selection'
 
-        title = titlePrefix + dataDescription + ' - ' + zoneDescription
+        title = titlePrefix + dataDescription + ' on ' + zoneDescription + '. ' + str(pdays) + ' days.'
         try:
             plot(chosenData[chosenZone], title, pdays)
         except Exception as e:
             print(e)
         
-        dataChoice = inputInteger(default=5, message='Choose the data [or q to quit]:')
+        dataChoice = inputInteger(default=7, message='Choose the data [or q to quit]:')
         zoneChoice = inputIntegerOrList(zones,message='Choose the zone of interest [or q to quit]:')
