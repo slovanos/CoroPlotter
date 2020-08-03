@@ -109,6 +109,10 @@ dfC = dfC.rename(columns={'US':'Usa', 'Taiwan*':'Taiwan'})
 
 dfD = dfD.rename(columns={'US':'Usa', 'Taiwan*':'Taiwan'})
 
+# Selecting only countries in both data frames and dropping nAs
+commonLabelsIndex = population.index.intersection(dfC.columns.values) 
+pop = population.loc[commonLabelsIndex].dropna()
+
 # ##### Defining Arbitrary Zones of interest and parameters #######
 
 ZOI = ['World', 'China', 'Italy', 'Usa','Germany', 'Switzerland',
@@ -156,9 +160,17 @@ for zone in zones:
 
     dailyNewDeath[zone] = dfD[zone]-tempD.values
 
-
+# New Cases/Deaths moving average
 NewCasesMovingAverage = dailyNewCases.rolling(window=7).mean()
 NewDeathMovingAverage = dailyNewDeath.rolling(window=7).mean()
+
+# New Cases/Deaths per million
+dfNewCasesMovingAveragePerMillion = (NewCasesMovingAverage[pop.index].div(pop.T.values.squeeze()))*1000000
+dfNewDeathMovingAveragePerMillion = (NewDeathMovingAverage[pop.index].div(pop.T.values.squeeze()))*1000000
+
+# Mortality (deaths/Population) per Million
+dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000
+
 
 # #### TOP N Countries ####
 
@@ -170,21 +182,25 @@ sorted_dfC = dfCsubset.sort_values(dfCsubset.last_valid_index(), axis=1, ascendi
 
 topZonesCases = sorted_dfC.columns[:topN]
 
+# Countries with most New Cases (running average and per million population)
+sorted_dfNewCasesMovingAveragePerMillion = dfNewCasesMovingAveragePerMillion.sort_values(
+    dfNewCasesMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
+
+topNewCases = sorted_dfNewCasesMovingAveragePerMillion.columns[:topN]
+
 # Countries with most deaths
 dfDsubset = dfD.drop(columns=['World','WorldExceptChina'])
 sorted_dfD = dfDsubset.sort_values(dfDsubset.last_valid_index(), axis=1, ascending = False)
 
 topZonesDeaths = sorted_dfD.columns[:topN]
 
-# Mortality (deaths/Population)
+# Countries with most new deaths (running average and per million population)
+sorted_dfNewDeathMovingAveragePerMillion = dfNewDeathMovingAveragePerMillion.sort_values(
+    dfNewDeathMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
 
-# Selecting only countries in both data frames and dropping nAs
-commonLabelsIndex = population.index.intersection(dfC.columns.values) 
-pop = population.loc[commonLabelsIndex].dropna()
+topNewDeaths = sorted_dfNewDeathMovingAveragePerMillion.columns[:topN]
 
-# Mortality per Million
-dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000
-
+# Top Mortaliy
 sorted_dfMortality = dfMortality.sort_values(dfMortality.last_valid_index(),
                                              axis=1, ascending = False)
 
@@ -226,17 +242,21 @@ titlePrefix = 'COVID-19 - '
 dfs = [(dfC,'Cases'),
        (growthFactor, 'Cases growth Factor (Daily)'),
        (dailyNewCases, 'Daily New Cases'),
-       (NewCasesMovingAverage, 'New Cases (7 days moving average)'),
+       (NewCasesMovingAverage, 'New Cases (7 days MA)'),
+       (dfNewCasesMovingAveragePerMillion, 'New Cases per Million population (7 days MA)'),
        (dfD,'Deaths'),
        (dailyNewDeath, 'Daily New Deaths'),
-       (NewDeathMovingAverage, 'New Deaths (7 days moving average)'),
+       (NewDeathMovingAverage, 'New Deaths (7 days MA)'),
+       (dfNewDeathMovingAveragePerMillion, 'New Deaths per Million population (7 days MA)'),
        (dfMortality, 'Mortality (Deaths per million)'),
        (dRatio, 'Deaths/Cases ratio'),
        ]
 
 # Zone Choices
 zoneChoices = [(topZonesCases, 'Countries with most cases'),
+         (topNewCases, 'Countries with most new cases over population (7 days MA)'),
          (topZonesDeaths, 'Countries with most deaths'),
+         (topNewDeaths, 'Countries with most new deaths over population (7 days MA)'),
          (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
          (world, 'World'),
          (ZOI, 'Arbitrary zone selection', '\n(' + ', '.join(ZOI) +')'),
@@ -257,7 +277,7 @@ def listOptions(options, msg):
         optionList = option[2] if len(option) > 2 else ''
         print(f'{idx}: {optionDescription}{optionList}')
 
-def inputIntegerOrList(choicesList, message='Enter an option (integer), name or list of names [q to quit]:'):
+def inputIntegerOrList(choicesList, message='Enter an option (integer), name or list of names [q to quit]:', defaultChoice=0):
 
     while True:
 
@@ -267,8 +287,8 @@ def inputIntegerOrList(choicesList, message='Enter an option (integer), name or 
             sys.exit(0)
 
         elif option == '':
-            print(f'No pick, using default value 0')
-            return 0
+            print(f'No pick, using default value {defaultChoice}')
+            return defaultChoice
 
         elif option.isdigit():
 
@@ -300,6 +320,9 @@ def inputIntegerOrList(choicesList, message='Enter an option (integer), name or 
        
 if __name__ == '__main__':
 
+    defaultDF = 9
+    defaultZone = 6
+
     #zones = [zone.lower() for zone in zones.tolist()] #  lowercased
     zones = set(zones.tolist()) # pandas index to list and list to set
 
@@ -308,11 +331,11 @@ if __name__ == '__main__':
 
     dataMsg = f'\nChoose one of the following COVID-19 related Data:\n'
     listOptions(dfs, dataMsg)
-    dataChoice = inputInteger(default=7)
+    dataChoice = inputInteger(default=defaultDF)
 
     zoneMsg = f'\nChoose the zone of interest, or type the name of the country or list of countries separated by commas:\n'
     listOptions(zoneChoices, zoneMsg)
-    zoneChoice = inputIntegerOrList(zones)
+    zoneChoice = inputIntegerOrList(zones,defaultChoice=defaultZone)
 
     while True:
 
@@ -329,5 +352,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         
-        dataChoice = inputInteger(default=7, message='Choose the data [or q to quit]:')
-        zoneChoice = inputIntegerOrList(zones,message='Choose the zone of interest [or q to quit]:')
+        dataChoice = inputInteger(default=defaultDF, message='Choose the data [or q to quit]:')
+        zoneChoice = inputIntegerOrList(zones,message='Choose the zone of interest [or q to quit]:',defaultChoice=defaultZone)
