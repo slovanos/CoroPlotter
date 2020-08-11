@@ -177,28 +177,38 @@ dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000
 topN = 10
 
 # Most affected Countries (by case count)
-dfCsubset = dfC.drop(columns=['World','WorldExceptChina'])
-sorted_dfC = dfCsubset.sort_values(dfCsubset.last_valid_index(), axis=1, ascending = False)
+sorted_dfC = dfC.sort_values(dfC.last_valid_index(), axis=1, ascending = False)
 
-topZonesCases = sorted_dfC.columns[:topN]
+topZonesCases = sorted_dfC.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
-# Countries with most New Cases (running average and per million population)
+# Countries with most daily Cases (Moving Average)
+sorted_NewCasesMovingAverage = NewCasesMovingAverage.sort_values(
+    NewCasesMovingAverage.last_valid_index(), axis=1, ascending = False)
+
+topNewCases = sorted_NewCasesMovingAverage.drop(columns=['World','WorldExceptChina']).columns[:topN]
+
+# Countries with most daily Cases (Moving Average and per million population)
 sorted_dfNewCasesMovingAveragePerMillion = dfNewCasesMovingAveragePerMillion.sort_values(
     dfNewCasesMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
 
-topNewCases = sorted_dfNewCasesMovingAveragePerMillion.columns[:topN]
+topNewCasesPerMillion = sorted_dfNewCasesMovingAveragePerMillion.columns[:topN]
 
 # Countries with most deaths
-dfDsubset = dfD.drop(columns=['World','WorldExceptChina'])
-sorted_dfD = dfDsubset.sort_values(dfDsubset.last_valid_index(), axis=1, ascending = False)
+sorted_dfD = dfD.sort_values(dfD.last_valid_index(), axis=1, ascending = False)
 
-topZonesDeaths = sorted_dfD.columns[:topN]
+topZonesDeaths = sorted_dfD.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
-# Countries with most new deaths (running average and per million population)
+# Countries with most daily deaths (Moving Average)
+sorted_NewDeathMovingAverage = NewDeathMovingAverage.sort_values(
+    NewDeathMovingAverage.last_valid_index(), axis=1, ascending = False)
+
+topNewDeaths = sorted_NewDeathMovingAverage.drop(columns=['World','WorldExceptChina']).columns[:topN]
+
+# Countries with most daily deaths (Moving Average and per million population)
 sorted_dfNewDeathMovingAveragePerMillion = dfNewDeathMovingAveragePerMillion.sort_values(
     dfNewDeathMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
 
-topNewDeaths = sorted_dfNewDeathMovingAveragePerMillion.columns[:topN]
+topNewDeathsPerMillion = sorted_dfNewDeathMovingAveragePerMillion.columns[:topN]
 
 # Top Mortaliy
 sorted_dfMortality = dfMortality.sort_values(dfMortality.last_valid_index(),
@@ -228,12 +238,9 @@ for i in range(1,fDaysTrend):
 
 # some plot Options
 pdays = 120
-
-# Data used. Description
-
-## picking
-
 titlePrefix = 'COVID-19 - '
+
+## Data used. Description. Picking.
 
 # List of zones and list of dataframes to be combined
 
@@ -241,22 +248,24 @@ titlePrefix = 'COVID-19 - '
 
 dfs = [(dfC,'Cases'),
        (growthFactor, 'Cases growth Factor (Daily)'),
-       (dailyNewCases, 'Daily New Cases'),
-       (NewCasesMovingAverage, 'New Cases (7 days MA)'),
-       (dfNewCasesMovingAveragePerMillion, 'New Cases per Million population (7 days MA)'),
+       (dailyNewCases, 'Daily Cases'),
+       (NewCasesMovingAverage, 'Daily Cases (7 days MA)'),
+       (dfNewCasesMovingAveragePerMillion, 'Daily Cases per Million population (7 days MA)'),
        (dfD,'Deaths'),
-       (dailyNewDeath, 'Daily New Deaths'),
-       (NewDeathMovingAverage, 'New Deaths (7 days MA)'),
-       (dfNewDeathMovingAveragePerMillion, 'New Deaths per Million population (7 days MA)'),
+       (dailyNewDeath, 'Daily Deaths'),
+       (NewDeathMovingAverage, 'Daily Deaths (7 days MA)'),
+       (dfNewDeathMovingAveragePerMillion, 'Daily Deaths per Million population (7 days MA)'),
        (dfMortality, 'Mortality (Deaths per million)'),
        (dRatio, 'Deaths/Cases ratio'),
        ]
 
 # Zone Choices
 zoneChoices = [(topZonesCases, 'Countries with most cases'),
-         (topNewCases, 'Countries with most new cases over population (7 days MA)'),
+         (topNewCases, 'Countries with most daily cases (7 days MA)'),
+         (topNewCasesPerMillion, 'Countries with most daily cases over population (7 days MA)'),
          (topZonesDeaths, 'Countries with most deaths'),
-         (topNewDeaths, 'Countries with most new deaths over population (7 days MA)'),
+         (topNewDeaths, 'Countries with most daily deaths (MA)'),
+         (topNewDeathsPerMillion, 'Countries with most daily deaths over population (7 days MA)'),
          (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
          (world, 'World'),
          (ZOI, 'Arbitrary zone selection', '\n(' + ', '.join(ZOI) +')'),
