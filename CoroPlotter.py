@@ -113,31 +113,16 @@ dfD = dfD.rename(columns={'US':'Usa', 'Taiwan*':'Taiwan'})
 commonLabelsIndex = population.index.intersection(dfC.columns.values) 
 pop = population.loc[commonLabelsIndex].dropna()
 
-# ##### Defining Arbitrary Zones of interest and parameters #######
-
-ZOI = ['World', 'China', 'Italy', 'Usa','Germany', 'Switzerland',
-         'United Kingdom', 'Spain', 'Iran', 'Argentina','Korea, South', 'Canada',
-         'Austria', 'Norway','Russia']
-
-ZOIRatios = ['World', 'China', 'Italy', 'Usa','Germany', 'Spain', 'Iran',
-               'Argentina','Korea, South', 'Canada', 'Austria', 'Norway']
-
-europe = ['Italy','Spain','France','Germany','Switzerland','Austria',
-         'United Kingdom', 'Norway','Sweden', 'Finland','Belgium', 'Ireland', 'Portugal']
-
-latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru', 'Bolivia']
-
-world = ['World']
-
 
 ## Subgroups and calculations
 zones = dfC.columns
+populationUnit = 1000000
 
 dfDict = {}
 growthFactor = pd.DataFrame(index=dfC.index, columns=zones)
 dRatio = pd.DataFrame(index=dfC.index, columns=zones)
-dailyNewCases = pd.DataFrame(index=dfC.index, columns=zones)
-dailyNewDeath = pd.DataFrame(index=dfD.index, columns=zones)
+dailyCases = pd.DataFrame(index=dfC.index, columns=zones)
+dailyDeaths = pd.DataFrame(index=dfD.index, columns=zones)
 
 for zone in zones:
     #dfDict[zone] = pd.concat([dfC[zone].rename('confirmed'), dfD[zone].rename('death'), dfR[zone].rename('recovered')], axis=1)
@@ -153,23 +138,23 @@ for zone in zones:
     tempC = tempC.replace(0,1)
     growthFactor[zone] = dfC[zone]/tempC.values
 
-    dailyNewCases[zone] = dfC[zone]-tempC.values
+    dailyCases[zone] = dfC[zone]-tempC.values
 
     tempD = pd.Series(dfD[zone][0])
     tempD = tempD.append(dfD[zone][0:-1], ignore_index = True)
 
-    dailyNewDeath[zone] = dfD[zone]-tempD.values
+    dailyDeaths[zone] = dfD[zone]-tempD.values
 
 # New Cases/Deaths moving average
-NewCasesMovingAverage = dailyNewCases.rolling(window=7).mean()
-NewDeathMovingAverage = dailyNewDeath.rolling(window=7).mean()
+dailyCasesMA = dailyCases.rolling(window=7).mean()
+dailyDeathsMA = dailyDeaths.rolling(window=7).mean()
 
 # New Cases/Deaths per million
-dfNewCasesMovingAveragePerMillion = (NewCasesMovingAverage[pop.index].div(pop.T.values.squeeze()))*1000000
-dfNewDeathMovingAveragePerMillion = (NewDeathMovingAverage[pop.index].div(pop.T.values.squeeze()))*1000000
+dailyCasesOverPopulationMA = (dailyCasesMA[pop.index].div(pop.T.values.squeeze()))*populationUnit
+dailyDeathsOverPopulationMA = (dailyDeathsMA[pop.index].div(pop.T.values.squeeze()))*populationUnit
 
 # Mortality (deaths/Population) per Million
-dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*1000000
+dfMortality = (dfD[pop.index].div(pop.T.values.squeeze()))*populationUnit
 
 
 # #### TOP N Countries ####
@@ -179,36 +164,36 @@ topN = 10
 # Most affected Countries (by case count)
 sorted_dfC = dfC.sort_values(dfC.last_valid_index(), axis=1, ascending = False)
 
-topZonesCases = sorted_dfC.drop(columns=['World','WorldExceptChina']).columns[:topN]
+topCases = sorted_dfC.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
 # Countries with most daily Cases (Moving Average)
-sorted_NewCasesMovingAverage = NewCasesMovingAverage.sort_values(
-    NewCasesMovingAverage.last_valid_index(), axis=1, ascending = False)
+sorted_dailyCasesMA = dailyCasesMA.sort_values(
+    dailyCasesMA.last_valid_index(), axis=1, ascending = False)
 
-topNewCases = sorted_NewCasesMovingAverage.drop(columns=['World','WorldExceptChina']).columns[:topN]
+topDailyCases = sorted_dailyCasesMA.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
-# Countries with most daily Cases (Moving Average and per million population)
-sorted_dfNewCasesMovingAveragePerMillion = dfNewCasesMovingAveragePerMillion.sort_values(
-    dfNewCasesMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
+# Countries with most daily Cases (Per unit population, Moving Average)
+sorted_dailyCasesOverPopulationMA = dailyCasesOverPopulationMA.sort_values(
+    dailyCasesOverPopulationMA.last_valid_index(), axis=1, ascending = False)
 
-topNewCasesPerMillion = sorted_dfNewCasesMovingAveragePerMillion.columns[:topN]
+topDailyCasesOverPopulation = sorted_dailyCasesOverPopulationMA.columns[:topN]
 
 # Countries with most deaths
 sorted_dfD = dfD.sort_values(dfD.last_valid_index(), axis=1, ascending = False)
 
-topZonesDeaths = sorted_dfD.drop(columns=['World','WorldExceptChina']).columns[:topN]
+topDeaths = sorted_dfD.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
 # Countries with most daily deaths (Moving Average)
-sorted_NewDeathMovingAverage = NewDeathMovingAverage.sort_values(
-    NewDeathMovingAverage.last_valid_index(), axis=1, ascending = False)
+sorted_dailyDeathsMA = dailyDeathsMA.sort_values(
+    dailyDeathsMA.last_valid_index(), axis=1, ascending = False)
 
-topNewDeaths = sorted_NewDeathMovingAverage.drop(columns=['World','WorldExceptChina']).columns[:topN]
+topDailyDeaths = sorted_dailyDeathsMA.drop(columns=['World','WorldExceptChina']).columns[:topN]
 
-# Countries with most daily deaths (Moving Average and per million population)
-sorted_dfNewDeathMovingAveragePerMillion = dfNewDeathMovingAveragePerMillion.sort_values(
-    dfNewDeathMovingAveragePerMillion.last_valid_index(), axis=1, ascending = False)
+# Countries with most daily deaths (Per unit population, Moving Average)
+sorted_dailyDeathsOverPopulationMA = dailyDeathsOverPopulationMA.sort_values(
+    dailyDeathsOverPopulationMA.last_valid_index(), axis=1, ascending = False)
 
-topNewDeathsPerMillion = sorted_dfNewDeathMovingAveragePerMillion.columns[:topN]
+topDailyDeathsOverPopulation = sorted_dailyDeathsOverPopulationMA.columns[:topN]
 
 # Top Mortaliy
 sorted_dfMortality = dfMortality.sort_values(dfMortality.last_valid_index(),
@@ -222,7 +207,7 @@ topMortality = sorted_dfMortality.columns[:topN]
 pDaysTrend = 5 # Days used for averiging the Growth Rate
 fDaysTrend = 4 # Days in the future for the trend
 
-trendZones = topZonesCases
+trendZones = topCases
 
 growthFactorMean = growthFactor.iloc[-pDaysTrend:,:].mean(axis=0)
 
@@ -242,30 +227,45 @@ titlePrefix = 'COVID-19 - '
 
 ## Data used. Description. Picking.
 
-# List of zones and list of dataframes to be combined
+# List of dataframes and zones to be combined
 
 # Data Choices
 
-dfs = [(dfC,'Cases'),
+dfs = [(dfC,'Cases (accumulated)'),
        (growthFactor, 'Cases growth Factor (Daily)'),
-       (dailyNewCases, 'Daily Cases'),
-       (NewCasesMovingAverage, 'Daily Cases (7 days MA)'),
-       (dfNewCasesMovingAveragePerMillion, 'Daily Cases per Million population (7 days MA)'),
-       (dfD,'Deaths'),
-       (dailyNewDeath, 'Daily Deaths'),
-       (NewDeathMovingAverage, 'Daily Deaths (7 days MA)'),
-       (dfNewDeathMovingAveragePerMillion, 'Daily Deaths per Million population (7 days MA)'),
+       (dailyCases, 'Daily Cases'),
+       (dailyCasesMA, 'Daily Cases (7 days MA)'),
+       (dailyCasesOverPopulationMA, 'Daily Cases per Million (7 days MA)'),
+       (dfD,'Deaths (accumulated)'),
+       (dailyDeaths, 'Daily Deaths'),
+       (dailyDeathsMA, 'Daily Deaths (7 days MA)'),
+       (dailyDeathsOverPopulationMA, 'Daily Deaths per Million (7 days MA)'),
        (dfMortality, 'Mortality (Deaths per million)'),
        (dRatio, 'Deaths/Cases ratio'),
        ]
 
 # Zone Choices
-zoneChoices = [(topZonesCases, 'Countries with most cases'),
-         (topNewCases, 'Countries with most daily cases (7 days MA)'),
-         (topNewCasesPerMillion, 'Countries with most daily cases over population (7 days MA)'),
-         (topZonesDeaths, 'Countries with most deaths'),
-         (topNewDeaths, 'Countries with most daily deaths (MA)'),
-         (topNewDeathsPerMillion, 'Countries with most daily deaths over population (7 days MA)'),
+
+# ##### Defining Arbitrary Zones of interest and parameters #######
+
+ZOI = ['World', 'China', 'Italy', 'Usa','Germany', 'Switzerland',
+         'United Kingdom', 'Spain', 'Iran', 'Argentina','Korea, South', 'Canada',
+         'Austria', 'Norway','Russia']
+
+europe = ['Italy','Spain','France','Germany','Switzerland','Austria',
+         'United Kingdom', 'Norway','Sweden', 'Finland','Belgium', 'Ireland', 'Portugal']
+
+latam = ['Brazil', 'Argentina', 'Chile', 'Mexico', 'Ecuador', 'Uruguay', 'Peru', 'Bolivia']
+
+world = ['World']
+
+
+zoneChoices = [(topCases, 'Countries with most cases'),
+         (topDailyCases, 'Countries with most daily cases (7 days MA)'),
+         (topDailyCasesOverPopulation, 'Countries with most daily cases per population unit (7 days MA)'),
+         (topDeaths, 'Countries with most deaths'),
+         (topDailyDeaths, 'Countries with most daily deaths (MA)'),
+         (topDailyDeathsOverPopulation, 'Countries with most daily deaths per population unit (7 days MA)'),
          (topMortality, 'Countries with largest mortality ratio (deaths/population)'),
          (world, 'World'),
          (ZOI, 'Arbitrary zone selection', '\n(' + ', '.join(ZOI) +')'),
