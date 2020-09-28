@@ -8,8 +8,6 @@ Plot significant updated graphs of COVID-19
 
 https://github.com/slovanos/CoroPlotter
 
-**The current sample implementation returns wikipedia summary information**
-
 ## Requirements:
 
 - numpy==1.18.1
