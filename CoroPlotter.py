@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from mytools.myutils import updateFile, inputInteger
+from mytools.myutils import update_file, input_integer
 
 # ######################### Plot Functions #####################################
 
@@ -97,7 +97,7 @@ def getCovIdData(rootUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COV
     urlRecovered = rootUrl+'time_series_covid19_recovered_global.csv'
 
     # ########## Confirmed #################
-    updateFile(urlConfirmed, './data/confirmed.csv', mtime = 0.25)
+    update_file(urlConfirmed, './data/confirmed.csv', mtime = 0.25)
 
     # Passing url directly to pd.read_csv() is also possible and valid, 
     # but keeping an updated local file and avoid unecessary downloads instead
@@ -105,7 +105,7 @@ def getCovIdData(rootUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COV
     dfC = processDf(dfConfirmed)
 
     # ########## Deaths #################
-    updateFile(urlDeaths, './data/deaths.csv', mtime = 0.25)
+    update_file(urlDeaths, './data/deaths.csv', mtime = 0.25)
     dfDeaths = pd.read_csv('./data/deaths.csv')
     dfD = processDf(dfDeaths)
 
@@ -357,11 +357,11 @@ if __name__ == '__main__':
 
     # Choosing Data:
     daysMsg = f'Enter the number of past days to draw the graphs (max: {dfC.shape[0]}). [Enter for default: {pdays}]:'
-    pdays = inputInteger(pdays, daysMsg)
+    pdays = input_integer(pdays, daysMsg)
 
     dataMsg = f'\nChoose one of the following COVID-19 related Data:\n'
     listOptions(dfs, dataMsg)
-    dataChoice = inputInteger(default=defaultDF)
+    dataChoice = input_integer(default=defaultDF)
 
     zoneMsg = f'\nChoose the zone of interest, or type the name of the country or list of countries separated by commas:\n'
     listOptions(zoneChoices, zoneMsg)
@@ -382,5 +382,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         
-        dataChoice = inputInteger(default=defaultDF, message='Choose the data [or q to quit]:')
+        dataChoice = input_integer(default=defaultDF, message='Choose the data [or q to quit]:')
         zoneChoice = inputIntegerOrList(zones,message='Choose the zone of interest [or q to quit]:',defaultChoice=defaultZone)
