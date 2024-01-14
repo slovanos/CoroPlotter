@@ -61,7 +61,7 @@ def processPopulationData(file = './data/population_by_country_2020.csv'):
     population.set_index('country', inplace = True)
 
     # Adding World Total
-    population = population.append(pd.DataFrame(data = [population.sum()], index=['World']))
+    population = pd.concat([population, pd.DataFrame(data = [population.sum()], index=['World'])])
 
     # for compatibility with COVID Datafreames
     population = population.rename(
@@ -142,14 +142,15 @@ def calculateData(dfC, dfD, population, populationUnit=1000000):
 
         # Growth Rate
         tempC = pd.Series(dfC[zone][0])
-        tempC = tempC.append(dfC[zone][0:-1], ignore_index = True)
+        tempC = pd.concat([tempC, dfC[zone][0:-1]], ignore_index = True)
         tempC = tempC.replace(0,1)
         growthFactor[zone] = dfC[zone]/tempC.values
 
         dailyCases[zone] = dfC[zone]-tempC.values
 
         tempD = pd.Series(dfD[zone][0])
-        tempD = tempD.append(dfD[zone][0:-1], ignore_index = True)
+        tempC = pd.concat([tempD, dfD[zone][0:-1]], ignore_index = True)
+
 
         dailyDeaths[zone] = dfD[zone]-tempD.values
 
