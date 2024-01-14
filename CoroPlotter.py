@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from mytools.myutils import update_file, input_integer
+from utils import update_file, input_integer
 
 # ######################### Plot Functions #####################################
 
