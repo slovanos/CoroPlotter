@@ -10,9 +10,10 @@ https://github.com/slovanos/CoroPlotter
 
 ## Requirements:
 
-- numpy==1.18.1
-- matplotlib==3.0.1
-- pandas==0.23.4
+- numpy>=1.22.0
+- matplotlib>=3.0.1
+- pandas>=0.23.4
+- requests>=2.31.0
 
 ## Usage:
 

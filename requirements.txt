@@ -1,6 +1,7 @@
-numpy==1.22.0
-matplotlib==3.0.1
-pandas==0.23.4
+numpy>=1.22.0
+matplotlib>=3.0.1
+pandas>=0.23.4
+requests>=2.31.0
 
 # You can install these by running:
 # $ pip3 install -r requirements.txt
